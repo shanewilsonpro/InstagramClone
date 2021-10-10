@@ -3,6 +3,13 @@ import React, { Component } from "react";
 import { View, Text } from "react-native";
 import * as firebase from "firebase";
 
+import { Provider } from "react-redux";
+import { createStore, applyMiddleware } from "redux";
+import rootReducer from "./redux/reducers";
+import thunk from "redux-thunk";
+
+const store = createStore(rootReducer, applyMiddleware(thunk));
+
 const firebaseConfig = {
   apiKey: "AIzaSyCjWH3tOz-2RdKBBz5pUXKNCgma7SNSnX8",
   authDomain: "instagramclone-ca188.firebaseapp.com",
@@ -22,6 +29,9 @@ import { createStackNavigator } from "@react-navigation/stack";
 
 import LandingScreen from "./components/auth/Landing";
 import RegisterScreen from "./components/auth/Register";
+import MainScreen from "./components/Main";
+import LoginScreen from "./components/auth/Login";
+import AddScreen from "./components/main/Add";
 
 const Stack = createStackNavigator();
 
@@ -69,15 +79,28 @@ export class App extends Component {
               options={{ headerShown: false }}
             />
             <Stack.Screen name="Register" component={RegisterScreen} />
+            <Stack.Screen name="Login" component={LoginScreen} />
           </Stack.Navigator>
         </NavigationContainer>
       );
     }
 
     return (
-      <View style={{ flex: 1, justifyContent: "center" }}>
-        <Text>User is logged in</Text>
-      </View>
+      <Provider store={store}>
+        <NavigationContainer>
+          <Stack.Navigator initialRouteName="Main">
+            <Stack.Screen
+              name="Main"
+              component={MainScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="Add"
+              component={AddScreen}
+            />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </Provider>
     );
   }
 }
