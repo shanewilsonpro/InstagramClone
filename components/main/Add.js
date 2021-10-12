@@ -1,32 +1,34 @@
-import React, { useState, useEffect } from "react";
-import { StyleSheet, Text, View, Button, Image } from "react-native";
-import { Camera } from "expo-camera";
-import * as ImagePicker from "expo-image-picker";
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, Button, Image } from 'react-native';
+import { Camera } from 'expo-camera';
+import * as ImagePicker from 'expo-image-picker';
 
-export default function AddScreen() {
-  const [hasCameraPermission, setHasCameraPermission] = useState(null);
+
+export default function Add({ navigation }) {
   const [hasGalleryPermission, setHasGalleryPermission] = useState(null);
+  const [hasCameraPermission, setHasCameraPermission] = useState(null);
   const [camera, setCamera] = useState(null);
   const [image, setImage] = useState(null);
   const [type, setType] = useState(Camera.Constants.Type.back);
+
+  useEffect(() => {
+    (async () => {
+      const cameraStatus = await Camera.requestPermissionsAsync();
+      setHasCameraPermission(cameraStatus.status === 'granted');
+
+      const galleryStatus = await ImagePicker.requestCameraRollPermissionsAsync();
+      setHasGalleryPermission(galleryStatus.status === 'granted');
+
+
+    })();
+  }, []);
 
   const takePicture = async () => {
     if (camera) {
       const data = await camera.takePictureAsync(null);
       setImage(data.uri);
     }
-  };
-
-  useEffect(() => {
-    (async () => {
-      const cameraStatus = await Camera.requestPermissionsAsync();
-      setHasCameraPermission(cameraStatus.status === "granted");
-
-      const galleryStatus =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
-      hasGalleryPermission(galleryStatus.status === "granted");
-    })();
-  }, []);
+  }
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -35,13 +37,13 @@ export default function AddScreen() {
       aspect: [1, 1],
       quality: 1,
     });
-
     console.log(result);
 
     if (!result.cancelled) {
       setImage(result.uri);
     }
   };
+
 
   if (hasCameraPermission === null || hasGalleryPermission === false) {
     return <View />;
@@ -53,11 +55,10 @@ export default function AddScreen() {
     <View style={{ flex: 1 }}>
       <View style={styles.cameraContainer}>
         <Camera
-          ref={(ref) => setCamera(ref)}
+          ref={ref => setCamera(ref)}
           style={styles.fixedRatio}
           type={type}
-          ratio={"1:1"}
-        />
+          ratio={'1:1'} />
       </View>
 
       <Button
@@ -68,10 +69,11 @@ export default function AddScreen() {
               ? Camera.Constants.Type.front
               : Camera.Constants.Type.back
           );
-        }}
-      ></Button>
+        }}>
+      </Button>
       <Button title="Take Picture" onPress={() => takePicture()} />
-      <Button title="Pick Image from Gallery" onPress={() => pickImage()} />
+      <Button title="Pick Image From Gallery" onPress={() => pickImage()} />
+      <Button title="Save" onPress={() => navigation.navigate('Save', { image })} />
       {image && <Image source={{ uri: image }} style={{ flex: 1 }} />}
     </View>
   );
@@ -80,10 +82,11 @@ export default function AddScreen() {
 const styles = StyleSheet.create({
   cameraContainer: {
     flex: 1,
-    flexDirection: "row",
+    flexDirection: 'row'
   },
   fixedRatio: {
     flex: 1,
-    aspectRatio: 1,
-  },
-});
+    aspectRatio: 1
+  }
+
+})
