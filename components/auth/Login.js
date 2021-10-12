@@ -1,51 +1,88 @@
-import React, { Component } from 'react'
-import { View, Button, TextInput } from 'react-native'
+import React, { useState } from "react";
+import {
+  View,
+  SafeAreaView,
+  TextInput,
+  Text,
+  StyleSheet,
+  Image,
+} from "react-native";
+import { Button } from "react-native-paper";
 
-import firebase from 'firebase'
+import firebase from "firebase";
 
-export class Login extends Component {
-    constructor(props) {
-        super(props);
+const logo = require("../../assets/logo.png");
 
-        this.state = {
-            email: '',
-            password: '',
-        }
+export default function Login(props) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-        this.onSignUp = this.onSignUp.bind(this)
-    }
+  const onSignUp = () => {
+    firebase.auth().signInWithEmailAndPassword(email, password);
+  };
+  return (
+    <SafeAreaView style={container.center}>
+      <View style={container.formCenter}>
+        <Image style={container.splash} source={logo} />
 
-    onSignUp() {
-        const { email, password } = this.state;
-        firebase.auth().signInWithEmailAndPassword(email, password)
-            .then((result) => {
-                console.log(result)
-            })
-            .catch((error) => {
-                console.log(error)
-            })
-    }
+        <TextInput
+          style={form.textInput}
+          placeholder="email"
+          onChangeText={(email) => setEmail(email)}
+        />
+        <TextInput
+          style={form.textInput}
+          placeholder="password"
+          secureTextEntry={true}
+          onChangeText={(password) => setPassword(password)}
+        />
 
-    render() {
-        return (
-            <View>
-                <TextInput
-                    placeholder="email"
-                    onChangeText={(email) => this.setState({ email })}
-                />
-                <TextInput
-                    placeholder="password"
-                    secureTextEntry={true}
-                    onChangeText={(password) => this.setState({ password })}
-                />
+        <Button onPress={() => onSignUp()} mode="contained">
+          Sign In
+        </Button>
+      </View>
 
-                <Button
-                    onPress={() => this.onSignUp()}
-                    title="Sign In"
-                />
-            </View>
-        )
-    }
+      <View style={form.bottomButton}>
+        <Text
+          title="Register"
+          onPress={() => props.navigation.navigate("Register")}
+        >
+          Don't have an account? SignUp.
+        </Text>
+      </View>
+    </SafeAreaView>
+  );
 }
 
-export default Login
+const container = StyleSheet.create({
+  center: {
+    flex: 1,
+  },
+  formCenter: {
+    justifyContent: "center",
+    flex: 1,
+    margin: 25,
+  },
+  splash: {
+    alignSelf: "center",
+    bottom: "10%",
+  },
+});
+
+const form = StyleSheet.create({
+  textInput: {
+    marginBottom: 10,
+    borderColor: "gray",
+    backgroundColor: "whitesmoke",
+    padding: 10,
+    borderWidth: 1,
+    borderRadius: 8,
+  },
+  bottomButton: {
+    alignContent: "center",
+    borderTopColor: "gray",
+    borderTopWidth: 1,
+    padding: 10,
+    textAlign: "center",
+  },
+});
