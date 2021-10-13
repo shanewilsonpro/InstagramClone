@@ -43,14 +43,7 @@ export default function Register(props) {
       });
       return;
     }
-    if (password.length < 6) {
-      setIsValid({
-        bool: true,
-        boolSnack: true,
-        message: "passwords must be at least 6 characters",
-      });
-      return;
-    }
+    
     firebase
       .firestore()
       .collection("users")

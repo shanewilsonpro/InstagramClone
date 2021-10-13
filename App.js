@@ -1,10 +1,20 @@
-import { StatusBar } from "expo-status-bar";
 import React, { Component } from "react";
-
 import { View, Text, LogBox } from "react-native";
 import _ from "lodash";
 
 import * as firebase from "firebase";
+
+import {
+  getFocusedRouteNameFromRoute,
+  NavigationContainer,
+} from "@react-navigation/native";
+import { createStackNavigator } from "@react-navigation/stack";
+
+import RegisterScreen from "./components/auth/Register";
+import LoginScreen from "./components/auth/Login";
+import MainScreen from "./components/Main";
+import SaveScreen from "./components/main/add/Save";
+import CommentScreen from "./components/main/Comment";
 
 import { Provider } from "react-redux";
 import { createStore, applyMiddleware } from "redux";
@@ -34,16 +44,6 @@ const firebaseConfig = {
 if (firebase.apps.length === 0) {
   firebase.initializeApp(firebaseConfig);
 }
-
-import { NavigationContainer } from "@react-navigation/native";
-import { createStackNavigator } from "@react-navigation/stack";
-
-import RegisterScreen from "./components/auth/Register";
-import LoginScreen from "./components/auth/Login";
-import MainScreen from "./components/Main";
-import AddScreen from "./components/main/Add";
-import SaveScreen from "./components/main/Save";
-import CommentScreen from "./components/main/Comment";
 
 const Stack = createStackNavigator();
 
@@ -103,14 +103,46 @@ export class App extends Component {
       <Provider store={store}>
         <NavigationContainer>
           <Stack.Navigator initialRouteName="Main">
-            <Stack.Screen name="Main" component={MainScreen} />
             <Stack.Screen
-              name="Add"
-              component={AddScreen}
+              key={Date.now()}
+              name="Main"
+              component={MainScreen}
               navigation={this.props.navigation}
+              options={({ route }) => {
+                const routeName = getFocusedRouteNameFromRoute(route) ?? "Feed";
+
+                switch (routeName) {
+                  case "Camera": {
+                    return {
+                      headerTitle: "Camera",
+                    };
+                  }
+                  case "Profile": {
+                    return {
+                      headerTitle: "Profile",
+                    };
+                  }
+                  case "Search": {
+                    return {
+                      headerTitle: "Search",
+                    };
+                  }
+                  case "Feed":
+                  default: {
+                    return {
+                      headerTitle: "Instagram",
+                    };
+                  }
+                }
+              }}
             />
             <Stack.Screen
               name="Save"
+              component={SaveScreen}
+              navigation={this.props.navigation}
+            />
+            <Stack.Screen
+              name="video"
               component={SaveScreen}
               navigation={this.props.navigation}
             />

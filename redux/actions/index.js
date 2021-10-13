@@ -8,14 +8,28 @@ import {
   CLEAR_DATA,
 } from "../constants/index";
 import firebase from "firebase";
-import { SnapshotViewIOSComponent } from "react-native";
 require("firebase/firestore");
+
+let unsubscribe = [];
 
 export function clearData() {
   return (dispatch) => {
+    for (let i = unsubscribe; i < unsubscribe.length; i++) {
+      unsubscribe[i]();
+    }
     dispatch({ type: CLEAR_DATA });
   };
 }
+
+export function reload() {
+  return (dispatch) => {
+    dispatch(clearData());
+    dispatch(fetchUser());
+    dispatch(fetchUserPosts());
+    dispatch(fetchUserFollowing());
+  };
+}
+
 export function fetchUser() {
   return (dispatch) => {
     firebase
@@ -137,7 +151,7 @@ export function fetchUsersFollowingLikes(uid, postId) {
       .collection("likes")
       .doc(firebase.auth().currentUser.uid)
       .onSnapshot((snapshot) => {
-        const postId = snapshot.ref.path.split('/')[3];
+        const postId = snapshot.ref.path.split("/")[3];
 
         let currentUserLike = false;
         if (snapshot.exists) {
