@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { View, Text, LogBox } from "react-native";
+import { View, Text, LogBox, Image } from "react-native";
 import _ from "lodash";
 
 import * as firebase from "firebase";
@@ -14,7 +14,10 @@ import RegisterScreen from "./components/auth/Register";
 import LoginScreen from "./components/auth/Login";
 import MainScreen from "./components/Main";
 import SaveScreen from "./components/main/add/Save";
+import PostScreen from "./components/main/feed/Post";
 import CommentScreen from "./components/main/Comment";
+
+import { container } from './components/styles';
 
 import { Provider } from "react-redux";
 import { createStore, applyMiddleware } from "redux";
@@ -22,6 +25,8 @@ import rootReducer from "./redux/reducers";
 import thunk from "redux-thunk";
 
 const store = createStore(rootReducer, applyMiddleware(thunk));
+
+const logo = require('./assets/logo.png');
 
 LogBox.ignoreLogs(["Setting a timer"]);
 const _console = _.clone(console);
@@ -70,13 +75,12 @@ export class App extends Component {
       }
     });
   }
+  
   render() {
     const { loggedIn, loaded } = this.state;
     if (!loaded) {
       return (
-        <View style={{ flex: 1, justifyContent: "center" }}>
-          <Text>Loading</Text>
-        </View>
+        <Image style={container.splash} source={logo} />
       );
     }
 
@@ -144,6 +148,11 @@ export class App extends Component {
             <Stack.Screen
               name="video"
               component={SaveScreen}
+              navigation={this.props.navigation}
+            />
+            <Stack.Screen
+              name="Post"
+              component={PostScreen}
               navigation={this.props.navigation}
             />
             <Stack.Screen
