@@ -1,8 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Image } from "react-native";
-
 import * as FileSystem from "expo-file-system";
 import PropTypes from "prop-types";
+import React, { useEffect, useRef, useState } from "react";
+import { Image } from "react-native";
 
 const CachedImage = (props) => {
   const {

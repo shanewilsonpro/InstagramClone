@@ -1,6 +1,6 @@
-// import * as Notifications from "expo-notifications";
+import * as Notifications from "expo-notifications";
 import firebase from "firebase";
-import Constants from "expo-constants";
+import { Constants } from "react-native-unimodules";
 import {
   CLEAR_DATA,
   USERS_DATA_STATE_CHANGE,
@@ -10,7 +10,7 @@ import {
   USER_FOLLOWING_STATE_CHANGE,
   USER_POSTS_STATE_CHANGE,
   USER_STATE_CHANGE,
-} from "../constants";
+} from "../constants/index";
 require("firebase/firestore");
 
 let unsubscribe = [];
@@ -23,85 +23,84 @@ export function clearData() {
     dispatch({ type: CLEAR_DATA });
   };
 }
-
 export function reload() {
   return (dispatch) => {
     dispatch(clearData());
     dispatch(fetchUser());
-    // dispatch(setNotificationService());
+    dispatch(setNotificationService());
     dispatch(fetchUserPosts());
     dispatch(fetchUserFollowing());
     dispatch(fetchUserChats());
   };
 }
 
-// export const setNotificationService = () => async (dispatch) => {
-//   let token;
-//   if (Constants.isDevice) {
-//     const existingStatus = await Notifications.getPermissionsAsync();
-//     let finalStatus = existingStatus;
-//     if (existingStatus.status !== "granted") {
-//       const status = await Notifications.requestPermissionsAsync();
-//       finalStatus = status;
-//     }
+export const setNotificationService = () => async (dispatch) => {
+  let token;
+  if (Constants.isDevice) {
+    const existingStatus = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+    if (existingStatus.status !== "granted") {
+      const status = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
 
-//     if (finalStatus.status !== "granted") {
-//       alert("Failed to get push token for push notification!");
-//       return;
-//     }
-//     token = await Notifications.getExpoPushTokenAsync();
-//   } else {
-//     alert("Must use physical device for Push Notifications");
-//   }
+    if (finalStatus.status !== "granted") {
+      alert("Failed to get push token for push notification!");
+      return;
+    }
+    token = await Notifications.getExpoPushTokenAsync();
+  } else {
+    alert("Must use physical device for Push Notifications");
+  }
 
-//   if (Platform.OS === "android") {
-//     Notifications.setNotificationChannelAsync("default", {
-//       name: "default",
-//       importance: Notifications.AndroidImportance.MAX,
-//       vibrationPattern: [0, 250, 250, 250],
-//       lightColor: "#FF231F7C",
-//     });
-//   }
+  if (Platform.OS === "android") {
+    Notifications.setNotificationChannelAsync("default", {
+      name: "default",
+      importance: Notifications.AndroidImportance.MAX,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: "#FF231F7C",
+    });
+  }
 
-//   Notifications.setNotificationHandler({
-//     handleNotification: async () => ({
-//       shouldShowAlert: true,
-//       shouldPlaySound: false,
-//       shouldSetBadge: false,
-//     }),
-//   });
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: false,
+      shouldSetBadge: false,
+    }),
+  });
 
-//   if (token != undefined) {
-//     firebase
-//       .firestore()
-//       .collection("users")
-//       .doc(firebase.auth().currentUser.uid)
-//       .update({
-//         notificationToken: token.data,
-//       });
-//   }
-// };
+  if (token != undefined) {
+    firebase
+      .firestore()
+      .collection("users")
+      .doc(firebase.auth().currentUser.uid)
+      .update({
+        notificationToken: token.data,
+      });
+  }
+};
 
-// export const sendNotification = (to, title, body, data) => (dispatch) => {
-//   if (to == null) {
-//     return;
-//   }
+export const sendNotification = (to, title, body, data) => (dispatch) => {
+  if (to == null) {
+    return;
+  }
 
-//   let response = fetch("https://exp.host/--/api/v2/push/send", {
-//     method: "POST",
-//     headers: {
-//       Accept: "application/json",
-//       "Content-Type": "application/json",
-//     },
-//     body: JSON.stringify({
-//       to,
-//       sound: "default",
-//       title,
-//       body,
-//       data,
-//     }),
-//   });
-// };
+  let response = fetch("https://exp.host/--/api/v2/push/send", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      to,
+      sound: "default",
+      title,
+      body,
+      data,
+    }),
+  });
+};
 
 export function fetchUser() {
   return (dispatch) => {
@@ -153,7 +152,6 @@ export function fetchUserChats() {
     unsubscribe.push(listener);
   };
 }
-
 export function fetchUserPosts() {
   return (dispatch) => {
     firebase
@@ -229,7 +227,8 @@ export function fetchUsersFollowingPosts(uid) {
       .orderBy("creation", "asc")
       .get()
       .then((snapshot) => {
-        const uid = snapshot.docs[0].ref.path.split("/")[1];
+        // const uid = snapshot.docs[0].ref.path.split('/')[1];
+        const uid = snapshot.query._.C_.path.segments[1];
         const user = getState().usersState.users.find((el) => el.uid === uid);
 
         let posts = snapshot.docs.map((doc) => {
@@ -313,6 +312,3 @@ export function deletePost(item) {
     });
   };
 }
-
-// fetchUsersFollowingLikes
-// const postId = snapshot.ref.path.split("/")[3];

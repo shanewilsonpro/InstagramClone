@@ -1,3 +1,6 @@
+import { Feather } from "@expo/vector-icons";
+import { Video } from "expo-av";
+import firebase from "firebase";
 import React, { useLayoutEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -7,16 +10,13 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-
-import { Feather } from "@expo/vector-icons";
-import { Video } from "expo-av";
 import MentionsTextInput from "react-native-mentions";
 import { Snackbar } from "react-native-paper";
 import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
-import { fetchUserPosts } from "../../../redux/actions/index";
+import { fetchUserPosts, sendNotification } from "../../../redux/actions/index";
+import { container, navbar, text, utils } from "../../styles";
 
-import firebase from "firebase";
 require("firebase/firestore");
 require("firebase/firebase-storage");
 
@@ -80,7 +80,6 @@ function Save(props) {
 
     return downloadURL;
   };
-
   const savePostData = (downloadURL, downloadURLStill) => {
     let object = {
       downloadURL,
@@ -90,7 +89,6 @@ function Save(props) {
       type: props.route.params.type,
       creation: firebase.firestore.FieldValue.serverTimestamp(),
     };
-
     if (downloadURLStill != null) {
       object.downloadURLStill = downloadURLStill;
     }
@@ -110,28 +108,28 @@ function Save(props) {
         setError(true);
       });
 
-    // var pattern = /\B@[a-z0-9_-]+/gi;
-    // let array = caption.match(pattern);
+    var pattern = /\B@[a-z0-9_-]+/gi;
+    let array = caption.match(pattern);
 
-    // if (array !== null) {
-    //   for (let i = 0; i < array.length; i++) {
-    //     firebase
-    //       .firestore()
-    //       .collection("users")
-    //       .where("username", "==", array[i].substring(1))
-    //       .get()
-    //       .then((snapshot) => {
-    //         snapshot.forEach((doc) => {
-    //           props.sendNotification(
-    //             doc.data().notificationToken,
-    //             "New tag",
-    //             `${props.currentUser.name} Tagged you in a post`,
-    //             { type: 0, user: firebase.auth().currentUser.uid }
-    //           );
-    //         });
-    //       });
-    //   }
-    // }
+    if (array !== null) {
+      for (let i = 0; i < array.length; i++) {
+        firebase
+          .firestore()
+          .collection("users")
+          .where("username", "==", array[i].substring(1))
+          .get()
+          .then((snapshot) => {
+            snapshot.forEach((doc) => {
+              props.sendNotification(
+                doc.data().notificationToken,
+                "New tag",
+                `${props.currentUser.name} Tagged you in a post`,
+                { type: 0, user: firebase.auth().currentUser.uid }
+              );
+            });
+          });
+      }
+    }
   };
 
   const renderSuggestionsRow = ({ item }, hidePanel) => {
@@ -175,13 +173,11 @@ function Save(props) {
         let result = snapshot.docs.map((doc) => {
           const data = doc.data();
           const id = doc.id;
-
           return { id, ...data };
         });
         setData(result);
       });
   };
-
   return (
     <View style={[container.container, utils.backgroundWhite]}>
       {uploading ? (
@@ -314,55 +310,11 @@ const styles = StyleSheet.create({
   },
 });
 
-const utils = StyleSheet.create({
-    marginBottom: {
-        marginBottom: 20,
-    },
-    justifyCenter: {
-        justifyContent: 'center',
-    },
-    alignItemsCenter: {
-        alignItems: 'center'
-    },
-    padding15: {
-        paddingTop: 15,
-        paddingRight: 15,
-        paddingLeft: 15,
-    },
-    backgroundWhite: {
-        backgroundColor: 'white',
-    },
-})
-
-const navbar = StyleSheet.create({
-    image: {
-        padding: 20
-    },
-})
-
-const container = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    image: {
-        aspectRatio: 1 / 1,
-    },
-})
-
-const text = StyleSheet.create({
-    bold: {
-        fontWeight: '700',
-    },
-    large: {
-        fontSize: 20//'large'
-    },
-})
-
 const mapStateToProps = (store) => ({
   currentUser: store.userState.currentUser,
 });
 
 const mapDispatchProps = (dispatch) =>
-  bindActionCreators({ fetchUserPosts }, dispatch);
+  bindActionCreators({ fetchUserPosts, sendNotification }, dispatch);
 
 export default connect(mapStateToProps, mapDispatchProps)(Save);

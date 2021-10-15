@@ -2,6 +2,7 @@ import { Feather } from "@expo/vector-icons";
 import { useIsFocused } from "@react-navigation/native";
 import { Audio } from "expo-av";
 import { Camera } from "expo-camera";
+import * as ImagePicker from "expo-image-picker";
 import * as MediaLibrary from "expo-media-library";
 import * as VideoThumbnails from "expo-video-thumbnails";
 import React, { useEffect, useRef, useState } from "react";
@@ -15,7 +16,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-
+import { container, utils } from "../../styles";
 const WINDOW_HEIGHT = Dimensions.get("window").height;
 const WINDOW_WIDTH = Dimensions.get("window").width;
 const closeButtonSize = Math.floor(WINDOW_HEIGHT * 0.032);
@@ -33,7 +34,6 @@ export default function VideoScreen(props) {
   const [galleryItems, setGalleryItems] = useState([]);
   const [galleryScrollRef, setGalleryScrollRef] = useState(null);
   const [galleryPickedImage, setGalleryPickedImage] = useState(null);
-
   const cameraRef = useRef();
   const isFocused = useIsFocused();
 
@@ -41,6 +41,7 @@ export default function VideoScreen(props) {
     (async () => {
       const cameraPermissions = await Camera.requestPermissionsAsync();
       const galleryPermissions = await MediaLibrary.requestPermissionsAsync();
+
       const audioPermissions = await Audio.requestPermissionsAsync();
 
       if (
@@ -58,11 +59,9 @@ export default function VideoScreen(props) {
       }
     })();
   }, []);
-
   const onCameraReady = () => {
     setIsCameraReady(true);
   };
-
   const takePicture = async () => {
     if (cameraRef.current) {
       const options = { quality: 0.5, base64: true, skipProcessing: true };
@@ -73,7 +72,6 @@ export default function VideoScreen(props) {
       }
     }
   };
-
   const recordVideo = async () => {
     if (cameraRef.current) {
       try {
@@ -81,8 +79,8 @@ export default function VideoScreen(props) {
           maxDuration: 60,
           quality: Camera.Constants.VideoQuality["480p"],
         };
-        const videoRecordPromise = cameraRef.current.recordAsync(options);
 
+        const videoRecordPromise = cameraRef.current.recordAsync(options);
         if (videoRecordPromise) {
           setIsVideoRecording(true);
           const data = await videoRecordPromise;
@@ -95,7 +93,6 @@ export default function VideoScreen(props) {
       }
     }
   };
-
   const generateThumbnail = async (source) => {
     try {
       const { uri } = await VideoThumbnails.getThumbnailAsync(source, {
@@ -113,7 +110,6 @@ export default function VideoScreen(props) {
       cameraRef.current.stopRecording();
     }
   };
-
   const switchCamera = () => {
     if (isPreview) {
       return;
@@ -124,14 +120,13 @@ export default function VideoScreen(props) {
         : Camera.Constants.Type.back
     );
   };
-
   const handleGoToSaveOnGalleryPick = async () => {
     let type = galleryPickedImage.mediaType == "video" ? 0 : 1;
+
     const loadedAsset = await MediaLibrary.getAssetInfoAsync(
       galleryPickedImage
     );
     let imageSource = null;
-
     if (type == 0) {
       imageSource = await generateThumbnail(galleryPickedImage.uri);
     }
@@ -212,7 +207,6 @@ export default function VideoScreen(props) {
       </View>
     </View>
   );
-
   if (hasPermission === null) {
     return <View />;
   }
@@ -304,7 +298,6 @@ export default function VideoScreen(props) {
       </ScrollView>
     );
   }
-
   return (
     <View
       style={{ flex: 1, flexDirection: "column", backgroundColor: "white" }}
@@ -341,7 +334,6 @@ export default function VideoScreen(props) {
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   closeButton: {
     position: "absolute",
@@ -369,6 +361,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     bottom: 38,
     width: "100%",
+
     alignItems: "center",
     justifyContent: "center",
   },
@@ -393,6 +386,7 @@ const styles = StyleSheet.create({
   text: {
     color: "#000000",
   },
+
   capture: {
     backgroundColor: "red",
     borderRadius: 5,
@@ -410,36 +404,5 @@ const styles = StyleSheet.create({
     width: captureSize,
     borderRadius: Math.floor(captureSize / 2),
     marginHorizontal: 31,
-  },
-});
-
-const utils = StyleSheet.create({
-  margin15: {
-    margin: 15,
-  },
-  backgroundWhite: {
-    backgroundColor: "white",
-  },
-  borderTopGray: {
-    borderTopWidth: 1,
-    borderColor: "lightgrey",
-  },
-  borderWhite: {
-    borderLeftWidth: 2,
-    borderRightWidth: 2,
-    borderTopWidth: 2,
-    borderColor: "white",
-  },
-});
-
-const container = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  containerImage: {
-    flex: 1 / 3,
-  },
-  image: {
-    aspectRatio: 1 / 1,
   },
 });

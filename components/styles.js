@@ -1,5 +1,4 @@
 import { StyleSheet } from "react-native";
-
 const utils = StyleSheet.create({
   centerHorizontal: {
     alignItems: "center",

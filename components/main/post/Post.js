@@ -1,25 +1,23 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Dimensions, Image, Text, TouchableOpacity, View } from "react-native";
-
 import { Entypo, Feather, FontAwesome5 } from "@expo/vector-icons";
+import { useIsFocused } from "@react-navigation/native";
 import { Video } from "expo-av";
 import VideoPlayer from "expo-video-player";
+import firebase from "firebase";
+import React, { useEffect, useRef, useState } from "react";
+import { Dimensions, Image, Text, TouchableOpacity, View } from "react-native";
 import BottomSheet from "react-native-bottomsheet-reanimated";
 import { Divider, Snackbar } from "react-native-paper";
-
-import { useIsFocused } from "@react-navigation/native";
-
 import ParsedText from "react-native-parsed-text";
-
 import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
-import { deletePost, fetchUserPosts } from "../../../redux/actions";
-
+import {
+  deletePost,
+  fetchUserPosts,
+  sendNotification,
+} from "../../../redux/actions/index";
 import { container, text, utils } from "../../styles";
 import { timeDifference } from "../../utils";
 import CachedImage from "../random/CachedImage";
-
-import firebase from "firebase";
 require("firebase/firestore");
 
 const WINDOW_WIDTH = Dimensions.get("window").width;
@@ -37,7 +35,6 @@ function Post(props) {
   const [loaded, setLoaded] = useState(false);
 
   const isFocused = useIsFocused();
-
   useEffect(() => {
     if (props.route.params.notification != undefined) {
       firebase
@@ -71,7 +68,6 @@ function Post(props) {
             setExists(true);
           }
         });
-
       firebase
         .firestore()
         .collection("posts")
@@ -103,6 +99,7 @@ function Post(props) {
           }
           setCurrentUserLike(currentUserLike);
         });
+
       setItem(props.route.params.item);
       setUser(props.route.params.user);
       setLoaded(true);
@@ -144,18 +141,17 @@ function Post(props) {
       .doc(firebase.auth().currentUser.uid)
       .set({})
       .then();
-    // props.sendNotification(
-    //   user.notificationToken,
-    //   "New Like",
-    //   `${props.currentUser.name} liked your post`,
-    //   { type: 0, postId, user: firebase.auth().currentUser.uid }
-    // );
+    props.sendNotification(
+      user.notificationToken,
+      "New Like",
+      `${props.currentUser.name} liked your post`,
+      { type: 0, postId, user: firebase.auth().currentUser.uid }
+    );
   };
-
   const onDislikePress = (userId, postId, item) => {
     item.likesCount -= 1;
-    setCurrentUserLike(false);
 
+    setCurrentUserLike(false);
     firebase
       .firestore()
       .collection("posts")
@@ -166,7 +162,6 @@ function Post(props) {
       .doc(firebase.auth().currentUser.uid)
       .delete();
   };
-
   if (!exists && loaded) {
     return (
       <View
@@ -182,15 +177,12 @@ function Post(props) {
       </View>
     );
   }
-
   if (!loaded) {
     return <View></View>;
   }
-
   if (user == undefined) {
     return <View></View>;
   }
-
   if (item == null) {
     return <View />;
   }
@@ -205,7 +197,6 @@ function Post(props) {
 
   if (videoref !== null) {
     videoref.setIsMutedAsync(unmutted);
-
     if (
       isFocused &&
       props.route.params.index == props.route.params.inViewPort
@@ -232,12 +223,12 @@ function Post(props) {
         >
           <TouchableOpacity
             style={[container.horizontal, { alignItems: "center" }]}
-            onPress={() =>
+            onPress={() => {
               props.navigation.navigate("ProfileOther", {
                 uid: user.uid,
                 username: undefined,
-              })
-            }
+              });
+            }}
           >
             {user.image == "default" ? (
               <FontAwesome5
@@ -260,6 +251,7 @@ function Post(props) {
               </Text>
             </View>
           </TouchableOpacity>
+
           <TouchableOpacity
             style={[{ marginLeft: "auto" }]}
             onPress={() => {
@@ -302,6 +294,7 @@ function Post(props) {
                     backgroundColor: "black",
                   }}
                 />
+
                 <TouchableOpacity
                   style={{
                     position: "absolute",
@@ -358,20 +351,21 @@ function Post(props) {
             source={{ uri: item.downloadURL }}
           />
         )}
+
         <View style={[utils.padding10, container.horizontal]}>
           {currentUserLike ? (
             <Entypo
               name="heart"
               size={30}
               color="red"
-              onPress={() => onDislikePress(user.uid, item.id, item)}
+              onPress={() => {onDislikePress(user.uid, item.id, item)}}
             />
           ) : (
             <Feather
               name="heart"
               size={30}
               color="black"
-              onPress={() => onLikePress(user.uid, item.id, item)}
+              onPress={() => {onLikePress(user.uid, item.id, item)}}
             />
           )}
           <Feather
@@ -379,12 +373,12 @@ function Post(props) {
             name="message-square"
             size={30}
             color="black"
-            onPress={() =>
+            onPress={() => {
               props.navigation.navigate("Comment", {
                 postId: item.id,
                 uid: user.uid,
                 user,
-              })
+              })}
             }
           />
           <Feather
@@ -392,29 +386,30 @@ function Post(props) {
             name="share"
             size={26}
             color="black"
-            onPress={() =>
+            onPress={() => {
               props.navigation.navigate("ChatList", {
                 postId: item.id,
                 post: { ...item, user: user },
                 share: true,
-              })
+              })}
             }
           />
         </View>
-        <View style={[container.container, utils.padding10Sides]}>
+        {/* <View style={[container.container, utils.padding10Sides]}> */}
           <Text style={[text.bold, text.medium]}>{item.likesCount} likes</Text>
           <Text style={[utils.margin15Right, utils.margin5Bottom]}>
             <Text
               style={[text.bold]}
-              onPress={() =>
+              onPress={() => {
                 props.navigation.navigate("ProfileOther", {
                   uid: user.uid,
                   username: undefined,
-                })
+                }) }
               }
             >
               {user.name}
             </Text>
+
             <Text> </Text>
             <ParsedText
               parse={[
@@ -430,12 +425,12 @@ function Post(props) {
           </Text>
           <Text
             style={[text.grey, utils.margin5Bottom]}
-            onPress={() =>
+            onPress={() => {
               props.navigation.navigate("Comment", {
                 postId: item.id,
                 uid: user.uid,
                 user,
-              })
+              })}
             }
           >
             View all {item.commentsCount} Comments
@@ -443,7 +438,7 @@ function Post(props) {
           <Text style={[text.grey, text.small, utils.margin5Bottom]}>
             {timeDifference(new Date(), item.creation.toDate())}
           </Text>
-        </View>
+        {/* </View> */}
       </View>
 
       <BottomSheet
@@ -492,10 +487,11 @@ function Post(props) {
                     <Text>Delete</Text>
                   </TouchableOpacity>
                 ) : null}
+
                 <Divider />
                 <TouchableOpacity
                   style={{ padding: 20 }}
-                  onPress={() => setModalShow({ visible: false, item: null })}
+                  onPress={() => {setModalShow({ visible: false, item: null })}}
                 >
                   <Text>Cancel</Text>
                 </TouchableOpacity>
@@ -525,6 +521,9 @@ const mapStateToProps = (store) => ({
 });
 
 const mapDispatchProps = (dispatch) =>
-  bindActionCreators({ fetchUserPosts, deletePost }, dispatch);
+  bindActionCreators(
+    { sendNotification, fetchUserPosts, deletePost },
+    dispatch
+  );
 
 export default connect(mapStateToProps, mapDispatchProps)(Post);
